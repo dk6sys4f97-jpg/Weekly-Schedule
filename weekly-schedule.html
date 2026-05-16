@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="theme-color" content="#0b0d13" />
+<title>Opportunistic Week</title>
+<style>
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; padding: 0; background: #0b0d13; font-family: Georgia, serif; color: #dde4f0; min-height: 100vh; -webkit-font-smoothing: antialiased; }
+  body { background: linear-gradient(160deg, #0b0d13 0%, #10131d 55%, #0d0f18 100%); padding-bottom: 60px; padding-top: env(safe-area-inset-top); }
+  button { font-family: inherit; }
+  .header { padding: 28px 20px 18px; border-bottom: 1px solid rgba(255,255,255,0.06); }
+  .eyebrow { font-size: 10px; letter-spacing: 0.22em; color: #475569; text-transform: uppercase; margin-bottom: 6px; }
+  .title { font-size: 25px; line-height: 1.15; margin-bottom: 18px; }
+  .title .accent { color: #fbbf24; font-style: italic; }
+  .title .sub { color: #94a3b8; font-size: 16px; }
+  .rings { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 14px; }
+  .ring-card { display: flex; align-items: center; gap: 10px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.07); border-radius: 12px; padding: 10px 12px; }
+  .ring-svg-wrap { position: relative; width: 50px; height: 50px; flex-shrink: 0; }
+  .ring-pct { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold; }
+  .ring-meta { flex: 1; min-width: 0; }
+  .ring-meta-label { font-size: 10px; color: #94a3b8; letter-spacing: 0.05em; text-transform: uppercase; }
+  .ring-meta-count { font-size: 12px; color: #dde4f0; margin-top: 2px; }
+  .ring-meta-sub { font-size: 9px; color: #475569; margin-top: 2px; }
+  .chips { display: flex; gap: 7px; flex-wrap: wrap; margin-bottom: 14px; }
+  .chip { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.09); border-radius: 8px; padding: 5px 10px; font-size: 11px; color: #94a3b8; display: flex; gap: 6px; align-items: center; }
+  .btn-row { display: flex; gap: 8px; flex-wrap: wrap; }
+  .btn { border-radius: 8px; font-size: 11px; padding: 6px 14px; cursor: pointer; letter-spacing: 0.06em; border: 1px solid; background: transparent; }
+  .btn-amber { background: rgba(251,191,36,0.08); border-color: rgba(251,191,36,0.25); color: #fbbf24; }
+  .btn-red { background: rgba(244,63,94,0.06); border-color: rgba(244,63,94,0.2); color: #f87171; }
+  .goals-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px; }
+  .goal-card { background: rgba(255,255,255,0.04); border-radius: 10px; padding: 10px 12px; border: 1px solid; }
+  .goal-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+  .goal-name { display: flex; gap: 6px; align-items: center; font-size: 11px; letter-spacing: 0.04em; }
+  .goal-count { font-size: 11px; color: #cbd5e1; font-weight: bold; }
+  .goal-bar-bg { width: 100%; height: 4px; background: rgba(255,255,255,0.06); border-radius: 2px; overflow: hidden; }
+  .goal-bar-fill { height: 100%; transition: width 0.3s ease, background 0.3s ease; }
+  .tabs { display: flex; gap: 6px; padding: 14px 20px 0; overflow-x: auto; scrollbar-width: none; }
+  .tabs::-webkit-scrollbar { display: none; }
+  .tab { flex-shrink: 0; padding: 7px 14px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.08); background: transparent; color: #cbd5e1; font-size: 12px; cursor: pointer; letter-spacing: 0.04em; transition: all 0.15s; position: relative; }
+  .tab.weekend { border-color: rgba(192,132,252,0.3); color: #c084fc; }
+  .tab.today { border-color: rgba(251,191,36,0.4); }
+  .tab.active { border-color: #fbbf24; background: rgba(251,191,36,0.13); color: #fbbf24; font-weight: bold; }
+  .tab-badge { position: absolute; top: -4px; right: -4px; font-size: 9px; border-radius: 50%; width: 14px; height: 14px; display: flex; align-items: center; justify-content: center; color: #0b0d13; font-weight: bold; }
+  .tab-badge.done { background: #34d399; }
+  .tab-badge.makeup { background: #f97316; }
+  .day-head { padding: 14px 20px 0; display: flex; align-items: baseline; gap: 12px; }
+  .day-name { font-size: 19px; letter-spacing: -0.3px; }
+  .today-pill { font-size: 9px; color: #fbbf24; margin-left: 8px; background: rgba(251,191,36,0.12); padding: 2px 6px; border-radius: 4px; letter-spacing: 0.1em; vertical-align: middle; }
+  .day-theme { font-size: 11px; color: #475569; letter-spacing: 0.07em; text-transform: uppercase; margin-top: 2px; }
+  .day-hours { margin-left: auto; border-radius: 8px; padding: 4px 10px; font-size: 11px; border: 1px solid; }
+  .day-hours.work { background: rgba(251,191,36,0.1); border-color: rgba(251,191,36,0.2); color: #fbbf24; }
+  .day-hours.off { background: rgba(192,132,252,0.1); border-color: rgba(192,132,252,0.2); color: #c084fc; }
+  .day-progress { padding: 10px 20px 0; }
+  .day-progress-meta { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; font-size: 11px; color: #94a3b8; }
+  .reset-day-btn { background: transparent; border: none; color: #475569; font-size: 10px; cursor: pointer; letter-spacing: 0.06em; padding: 0; }
+  .day-progress-bar { width: 100%; height: 5px; background: rgba(255,255,255,0.05); border-radius: 3px; overflow: hidden; }
+  .day-progress-fill { height: 100%; transition: width 0.3s ease, background 0.3s ease; }
+  .makeup-banner { margin: 12px 20px 0; padding: 10px 12px; background: rgba(249,115,22,0.08); border: 1px solid rgba(249,115,22,0.25); border-radius: 10px; font-size: 11px; color: #fb923c; line-height: 1.4; }
+  .makeup-banner strong { letter-spacing: 0.05em; }
+  .timeline { padding: 16px 20px 0; display: flex; flex-direction: column; gap: 7px; }
+  .row { display: flex; gap: 10px; align-items: flex-start; }
+  .row-time-col { display: flex; flex-direction: column; align-items: center; width: 40px; }
+  .row-time { font-size: 11px; color: #475569; letter-spacing: 0.02em; white-space: nowrap; margin-top: 10px; }
+  .row-line { width: 1px; flex: 1; min-height: 16px; margin-top: 4px; }
+  .row-block { flex: 1; border-radius: 10px; padding: 9px 12px; border: 1px solid; border-left-width: 3px; display: flex; align-items: flex-start; gap: 10px; transition: background 0.15s, border 0.15s, opacity 0.15s; }
+  .row-block.checkable { cursor: pointer; }
+  .row-block.makeup-block:not(.checked) { border-style: dashed; }
+  .checkbox { width: 18px; height: 18px; margin-top: 1px; border-radius: 5px; flex-shrink: 0; border: 1.5px solid rgba(255,255,255,0.25); display: flex; align-items: center; justify-content: center; transition: all 0.15s; background: transparent; }
+  .row-block.checked .checkbox svg { display: block; }
+  .row-block.checked .label { text-decoration: line-through; }
+  .row-block.checked { opacity: 0.78; }
+  .label-row { display: flex; align-items: center; gap: 7px; flex-wrap: wrap; }
+  .icon { font-size: 14px; }
+  .label { font-size: 13px; color: #e2e8f0; line-height: 1.3; }
+  .makeup-tag { font-size: 9px; color: #fb923c; background: rgba(249,115,22,0.12); border: 1px solid rgba(249,115,22,0.3); border-radius: 4px; padding: 1px 5px; letter-spacing: 0.08em; font-weight: bold; }
+  .duration { font-size: 10px; border-radius: 4px; padding: 2px 6px; letter-spacing: 0.04em; margin-top: 5px; display: inline-block; }
+  .row-last { color: #334155; font-size: 12px; font-style: italic; padding: 2px 0; }
+  .legend { padding: 22px 20px 0; }
+  .legend-title { font-size: 10px; color: #1e293b; letter-spacing: 0.14em; text-transform: uppercase; margin-bottom: 8px; }
+  .legend-items { display: flex; flex-wrap: wrap; gap: 6px; }
+  .legend-item { display: flex; align-items: center; gap: 5px; border-radius: 6px; padding: 3px 8px; font-size: 10px; border: 1px solid; }
+  .save-toast { position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%); background: rgba(52,211,153,0.15); border: 1px solid #34d399; color: #34d399; padding: 6px 14px; border-radius: 20px; font-size: 11px; letter-spacing: 0.05em; opacity: 0; transition: opacity 0.2s; pointer-events: none; z-index: 100; }
+  .save-toast.show { opacity: 1; }
+  .install-hint { padding: 12px 20px 0; }
+  .install-hint-inner { background: rgba(56,189,248,0.06); border: 1px solid rgba(56,189,248,0.25); border-radius: 10px; padding: 10px 12px; font-size: 11px; color: #7dd3fc; line-height: 1.45; }
+  .install-hint-inner strong { letter-spacing: 0.05em; }
+  .install-hint-dismiss { background: transparent; border: none; color: #38bdf8; font-size: 10px; cursor: pointer; padding: 0; margin-top: 6px; text-decoration: underline; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<div id="toast" class="save-toast">saved ✓</div>
+
+<script>
+// ============================================================
+// SCHEDULE DATA
+// ============================================================
+const categories = {
+  routine:  { label: "Morning Routine", color: "#94a3b8", bg: "rgba(148,163,184,0.10)", icon: "☕" },
+  meal:     { label: "Meal",            color: "#fb923c", bg: "rgba(251,146,60,0.10)",  icon: "🍽️" },
+  italian:  { label: "Italian",         color: "#38bdf8", bg: "rgba(56,189,248,0.10)",  icon: "🇮🇹" },
+  work:     { label: "Work",            color: "#fbbf24", bg: "rgba(251,191,36,0.10)",  icon: "💼" },
+  fitness:  { label: "Fitness",         color: "#34d399", bg: "rgba(52,211,153,0.10)",  icon: "💪" },
+  cycling:  { label: "Cycling",         color: "#4ade80", bg: "rgba(74,222,128,0.10)",  icon: "🚴" },
+};
+
+const schedule = {
+  Mon: { label: "Monday", theme: "Lift A · Push · Full Work Day", workHours: "5h 20m", blocks: [
+    { time: "8:00",  duration: 30,  label: "Morning Routine · Coffee",      cat: "routine", noCheck: true },
+    { time: "8:30",  duration: 30,  label: "Protein Smoothie",              cat: "meal", noCheck: true },
+    { time: "9:00",  duration: 25,  label: "Italian Practice",              cat: "italian" },
+    { time: "9:30",  duration: 150, label: "Work Block 1",                  cat: "work", noCheck: true },
+    { time: "12:00", duration: 70,  label: "Lunch — Chipotle or Beef Bowl", cat: "meal", noCheck: true },
+    { time: "1:10",  duration: 170, label: "Work Block 2",                  cat: "work", noCheck: true },
+    { time: "4:00",  duration: 80,  label: "Lift A · Chest/Shoulders/Tris · KorSquats (20)", cat: "fitness" },
+    { time: "8:00",  duration: 0,   label: "Wind Down 🌙",                  cat: "routine" },
+  ]},
+  Tue: { label: "Tuesday", theme: "Cycling · Full Work Day", workHours: "5h 20m", blocks: [
+    { time: "8:00",  duration: 30,  label: "Morning Routine · Coffee",                  cat: "routine", noCheck: true },
+    { time: "8:30",  duration: 30,  label: "Protein Smoothie",                          cat: "meal", noCheck: true },
+    { time: "9:00",  duration: 25,  label: "Italian Practice",                          cat: "italian" },
+    { time: "9:30",  duration: 150, label: "Work Block 1",                              cat: "work", noCheck: true },
+    { time: "12:00", duration: 70,  label: "Lunch",                                     cat: "meal", noCheck: true },
+    { time: "1:10",  duration: 170, label: "Work Block 2",                              cat: "work", noCheck: true },
+    { time: "4:00",  duration: 75,  label: "Cycling — ~7 Miles · KorSquats (20)",       cat: "cycling" },
+    { time: "8:00",  duration: 0,   label: "Wind Down 🌙",                              cat: "routine" },
+  ]},
+  Wed: { label: "Wednesday", theme: "Lift B · Pull · Full Work Day", workHours: "5h 20m", blocks: [
+    { time: "8:00",  duration: 30,  label: "Morning Routine · Coffee",      cat: "routine", noCheck: true },
+    { time: "8:30",  duration: 30,  label: "Protein Smoothie",              cat: "meal", noCheck: true },
+    { time: "9:00",  duration: 25,  label: "Italian Practice",              cat: "italian" },
+    { time: "9:30",  duration: 150, label: "Work Block 1",                  cat: "work", noCheck: true },
+    { time: "12:00", duration: 70,  label: "Lunch",                         cat: "meal", noCheck: true },
+    { time: "1:10",  duration: 170, label: "Work Block 2",                  cat: "work", noCheck: true },
+    { time: "4:00",  duration: 80,  label: "Lift B · Back/Biceps/Rear Delts · KorSquats (20)", cat: "fitness" },
+    { time: "8:00",  duration: 0,   label: "Wind Down 🌙",                  cat: "routine" },
+  ]},
+  Thu: { label: "Thursday", theme: "Cycling · Full Work Day", workHours: "5h 20m", blocks: [
+    { time: "8:00",  duration: 30,  label: "Morning Routine · Coffee",                  cat: "routine", noCheck: true },
+    { time: "8:30",  duration: 30,  label: "Protein Smoothie",                          cat: "meal", noCheck: true },
+    { time: "9:00",  duration: 25,  label: "Italian Practice",                          cat: "italian" },
+    { time: "9:30",  duration: 150, label: "Work Block 1",                              cat: "work", noCheck: true },
+    { time: "12:00", duration: 70,  label: "Lunch",                                     cat: "meal", noCheck: true },
+    { time: "1:10",  duration: 170, label: "Work Block 2",                              cat: "work", noCheck: true },
+    { time: "4:00",  duration: 75,  label: "Cycling — ~7 Miles · KorSquats (20)",       cat: "cycling" },
+    { time: "8:00",  duration: 0,   label: "Wind Down 🌙",                              cat: "routine" },
+  ]},
+  Fri: { label: "Friday", theme: "Lift C · Legs · Full Work Day", workHours: "5h 20m", blocks: [
+    { time: "8:00",  duration: 30,  label: "Morning Routine · Coffee",      cat: "routine", noCheck: true },
+    { time: "8:30",  duration: 30,  label: "Protein Smoothie",              cat: "meal", noCheck: true },
+    { time: "9:00",  duration: 25,  label: "Italian Practice",              cat: "italian" },
+    { time: "9:30",  duration: 150, label: "Work Block 1",                  cat: "work", noCheck: true },
+    { time: "12:00", duration: 70,  label: "Lunch",                         cat: "meal", noCheck: true },
+    { time: "1:10",  duration: 170, label: "Work Block 2",                  cat: "work", noCheck: true },
+    { time: "4:00",  duration: 80,  label: "Lift C · Legs · KorSquats (20)", cat: "fitness" },
+    { time: "8:00",  duration: 0,   label: "Wind Down 🌙",                  cat: "routine" },
+  ]},
+  Sat: { label: "Saturday", theme: "Family Day — No Work", workHours: null, blocks: [
+    { time: "8:30",  duration: 30,  label: "Slow Morning — Coffee",     cat: "routine", noCheck: true },
+    { time: "9:00",  duration: 30,  label: "Protein Smoothie",          cat: "meal", noCheck: true },
+    { time: "9:30",  duration: 25,  label: "Italian Practice",          cat: "italian" },
+    { time: "10:00", duration: 60,  label: "Cycling — ~5 Miles",        cat: "cycling" },
+    { time: "8:00",  duration: 0,   label: "Wind Down 🌙",              cat: "routine" },
+  ]},
+  Sun: { label: "Sunday", theme: "Reset Day — No Work", workHours: null, blocks: [
+    { time: "8:30",  duration: 30,  label: "Slow Morning — Coffee",     cat: "routine", noCheck: true },
+    { time: "9:00",  duration: 30,  label: "Protein Smoothie",          cat: "meal", noCheck: true },
+    { time: "9:30",  duration: 25,  label: "Italian Practice",          cat: "italian" },
+    { time: "8:00",  duration: 0,   label: "Wind Down 🌙",              cat: "routine" },
+  ]},
+};
+
+const days = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
+const dayOrder = { Mon:0, Tue:1, Wed:2, Thu:3, Fri:4, Sat:5, Sun:6 };
+const TRACKED = ["italian","fitness","cycling"];
+
+// ============================================================
+// HELPERS
+// ============================================================
+function getWeekKey(date = new Date()) {
+  const d = new Date(date);
+  const day = d.getDay();
+  const diff = day === 0 ? -6 : 1 - day;
+  d.setDate(d.getDate() + diff);
+  d.setHours(0,0,0,0);
+  return d.toISOString().slice(0,10);
+}
+function getTodayKey() {
+  const map = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+  return map[new Date().getDay()];
+}
+function fmtDur(min) {
+  if (min >= 60) {
+    const h = Math.floor(min/60); const m = min%60;
+    return m ? `${h}h ${m}m` : `${h}h`;
+  }
+  return `${min}m`;
+}
+function blockId(block, idx) { return block.id != null ? block.id : String(idx); }
+
+const weeklyTargets = TRACKED.reduce((acc, cat) => {
+  acc[cat] = 0;
+  Object.values(schedule).forEach(d => {
+    d.blocks.forEach(b => { if (b.cat === cat && b.duration > 0 && !b.noCheck) acc[cat]++; });
+  });
+  return acc;
+}, {});
+
+function computeMakeups(checks, todayKey) {
+  const todayIdx = dayOrder[todayKey] || 0;
+  const result = {};
+  TRACKED.forEach(cat => {
+    let achievable = 0;
+    Object.entries(schedule).forEach(([dKey, d]) => {
+      const dIdx = dayOrder[dKey];
+      const dc = checks[dKey] || {};
+      d.blocks.forEach((b, i) => {
+        if (b.cat !== cat || b.duration === 0 || b.noCheck) return;
+        const checked = !!dc[blockId(b,i)];
+        if (checked) achievable++;
+        else if (dIdx >= todayIdx) achievable++;
+      });
+    });
+    Object.values(checks).forEach(dc => {
+      Object.keys(dc || {}).forEach(id => {
+        if (id.indexOf(`mu-${cat}-`) === 0 && dc[id]) achievable++;
+      });
+    });
+    const shortfall = Math.max(0, weeklyTargets[cat] - achievable);
+    if (shortfall > 0) result[cat] = shortfall;
+  });
+  return result;
+}
+
+function buildMakeupBlocks(makeups) {
+  const labelMap = { italian: "Italian Make-Up", fitness: "Workout Make-Up", cycling: "Cycling Make-Up" };
+  const durMap = { italian: 25, fitness: 60, cycling: 60 };
+  const out = [];
+  Object.entries(makeups).forEach(([cat, count]) => {
+    for (let n = 0; n < count; n++) {
+      out.push({ id: `mu-${cat}-${n}`, time: "—", duration: durMap[cat], label: labelMap[cat], cat, isMakeup: true });
+    }
+  });
+  return out;
+}
+
+function getDayBlocks(dayKey, checks, todayKey) {
+  const base = schedule[dayKey].blocks;
+  if (dayKey !== "Sun") return base;
+  const mus = buildMakeupBlocks(computeMakeups(checks, todayKey));
+  if (!mus.length) return base;
+  const lastIdx = base.length - 1;
+  return [...base.slice(0, lastIdx), ...mus, base[lastIdx]];
+}
+
+// ============================================================
+// STATE + STORAGE
+// ============================================================
+const STORAGE_KEY_PREFIX = "opportunistic-week:";
+const weekKey = getWeekKey();
+const todayKey = getTodayKey();
+let activeDay = todayKey in schedule ? todayKey : "Mon";
+let showStats = false;
+let checks = {};
+
+function storageKey() { return STORAGE_KEY_PREFIX + weekKey; }
+
+function loadChecks() {
+  try {
+    const raw = localStorage.getItem(storageKey());
+    if (raw) checks = JSON.parse(raw);
+  } catch (e) {
+    console.warn("Load failed", e);
+  }
+}
+
+function saveChecks() {
+  try {
+    localStorage.setItem(storageKey(), JSON.stringify(checks));
+    showSavedToast();
+  } catch (e) {
+    console.error("Save failed", e);
+    alert("Could not save progress — your browser may be blocking localStorage. Try disabling Private Browsing.");
+  }
+}
+
+let toastTimer = null;
+function showSavedToast() {
+  const t = document.getElementById("toast");
+  t.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove("show"), 1000);
+}
+
+// ============================================================
+// RENDER
+// ============================================================
+function calcTotals() {
+  const dayChecks = checks[activeDay] || {};
+  const displayBlocks = getDayBlocks(activeDay, checks, todayKey);
+  const dayCompletableIds = displayBlocks
+    .map((b, i) => (b.duration > 0 && !b.noCheck ? blockId(b, i) : null))
+    .filter(x => x !== null);
+  const completedCount = dayCompletableIds.filter(id => dayChecks[id]).length;
+  const totalCount = dayCompletableIds.length;
+  const dayPct = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
+
+  const todayChecks = checks[todayKey] || {};
+  const todayDisplayBlocks = getDayBlocks(todayKey, checks, todayKey);
+  const todayIds = todayDisplayBlocks
+    .map((b, i) => (b.duration > 0 && !b.noCheck ? blockId(b, i) : null))
+    .filter(x => x !== null);
+  const todayDone = todayIds.filter(id => todayChecks[id]).length;
+  const todayTotal = todayIds.length;
+  const todayPct = todayTotal > 0 ? Math.round((todayDone / todayTotal) * 100) : 0;
+
+  const weekTotals = days.reduce((acc, d) => {
+    const dc = checks[d] || {};
+    const dBlocks = getDayBlocks(d, checks, todayKey);
+    dBlocks.forEach((b, i) => {
+      if (b.duration === 0 || b.noCheck) return;
+      acc.total++;
+      if (dc[blockId(b, i)]) acc.done++;
+    });
+    return acc;
+  }, { done: 0, total: 0 });
+  const weekPct = weekTotals.total > 0 ? Math.round((weekTotals.done / weekTotals.total) * 100) : 0;
+
+  const categoryProgress = {};
+  days.forEach(d => {
+    const dc = checks[d] || {};
+    const dBlocks = getDayBlocks(d, checks, todayKey);
+    dBlocks.forEach((b, i) => {
+      if (b.duration === 0 || b.noCheck) return;
+      if (!categoryProgress[b.cat]) categoryProgress[b.cat] = { done: 0, total: 0 };
+      categoryProgress[b.cat].total++;
+      if (dc[blockId(b, i)]) categoryProgress[b.cat].done++;
+    });
+  });
+
+  return { dayChecks, displayBlocks, completedCount, totalCount, dayPct, todayDone, todayTotal, todayPct, weekTotals, weekPct, categoryProgress };
+}
+
+function ringSvg(pct) {
+  const stroke = pct >= 80 ? "#34d399" : "#fbbf24";
+  const len = 131.95;
+  const filled = (pct / 100) * len;
+  return `<svg width="50" height="50" viewBox="0 0 50 50">
+    <circle cx="25" cy="25" r="21" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="4"></circle>
+    <circle cx="25" cy="25" r="21" fill="none" stroke="${stroke}" stroke-width="4" stroke-linecap="round"
+      stroke-dasharray="${filled} ${len}" transform="rotate(-90 25 25)"
+      style="transition: stroke-dasharray 0.4s ease, stroke 0.3s ease"></circle>
+  </svg>`;
+}
+
+function esc(s) {
+  return String(s).replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
+}
+
+function render() {
+  const t = calcTotals();
+  const day = schedule[activeDay];
+  const installHidden = localStorage.getItem("install-hint-dismissed") === "1";
+
+  const ringsHtml = `
+    <div class="rings">
+      <div class="ring-card">
+        <div class="ring-svg-wrap">
+          ${ringSvg(t.todayPct)}
+          <div class="ring-pct" style="color:${t.todayPct >= 80 ? '#34d399' : '#fbbf24'}">${t.todayPct}%</div>
+        </div>
+        <div class="ring-meta">
+          <div class="ring-meta-label">Today</div>
+          <div class="ring-meta-count">${t.todayDone} of ${t.todayTotal} done</div>
+          <div class="ring-meta-sub">${esc(schedule[todayKey].label)}</div>
+        </div>
+      </div>
+      <div class="ring-card">
+        <div class="ring-svg-wrap">
+          ${ringSvg(t.weekPct)}
+          <div class="ring-pct" style="color:${t.weekPct >= 80 ? '#34d399' : '#fbbf24'}">${t.weekPct}%</div>
+        </div>
+        <div class="ring-meta">
+          <div class="ring-meta-label">This Week</div>
+          <div class="ring-meta-count">${t.weekTotals.done} of ${t.weekTotals.total} done</div>
+          <div class="ring-meta-sub">Week of ${weekKey}</div>
+        </div>
+      </div>
+    </div>`;
+
+  const chipsHtml = `
+    <div class="chips">
+      <div class="chip"><span>💼</span><span>Work 9am–4pm · Mon–Fri</span></div>
+      <div class="chip"><span>🇮🇹</span><span>Italian at 9am</span></div>
+      <div class="chip"><span>⛳</span><span>Golf opportunistic</span></div>
+    </div>`;
+
+  const goalsHtml = showStats ? `
+    <div class="goals-grid">
+      ${Object.entries(t.categoryProgress)
+        .filter(([k]) => TRACKED.indexOf(k) >= 0)
+        .sort(([,a],[,b]) => b.total - a.total)
+        .map(([key, prog]) => {
+          const cat = categories[key];
+          const pct = prog.total > 0 ? Math.round((prog.done / prog.total) * 100) : 0;
+          return `<div class="goal-card" style="border-color:${cat.color}30">
+            <div class="goal-head">
+              <div class="goal-name" style="color:${cat.color}">
+                <span style="font-size:13px">${cat.icon}</span>
+                <span>${esc(cat.label)}</span>
+              </div>
+              <div class="goal-count">${prog.done}/${prog.total}</div>
+            </div>
+            <div class="goal-bar-bg">
+              <div class="goal-bar-fill" style="width:${pct}%;background:${pct >= 80 ? '#34d399' : cat.color}"></div>
+            </div>
+          </div>`;
+        }).join("")}
+    </div>` : "";
+
+  const tabsHtml = days.map(d => {
+    const isActive = d === activeDay;
+    const isWeekend = d === "Sat" || d === "Sun";
+    const isToday = d === todayKey;
+    const dc = checks[d] || {};
+    const dBlocks = getDayBlocks(d, checks, todayKey);
+    const completable = dBlocks.map((b, i) => (b.duration > 0 && !b.noCheck ? blockId(b, i) : null)).filter(x => x !== null);
+    const dDone = completable.filter(id => dc[id]).length;
+    const dPct = completable.length > 0 ? Math.round((dDone / completable.length) * 100) : 0;
+    const hasMu = d === "Sun" && dBlocks.some(b => b.isMakeup);
+    const classes = ["tab"];
+    if (isActive) classes.push("active");
+    else if (isToday) classes.push("today");
+    else if (isWeekend) classes.push("weekend");
+    let badge = "";
+    if (dPct >= 80) badge = `<span class="tab-badge done">✓</span>`;
+    else if (hasMu) badge = `<span class="tab-badge makeup">!</span>`;
+    return `<button class="${classes.join(' ')}" data-day="${d}">${d}${badge}</button>`;
+  }).join("");
+
+  const dayHoursHtml = day.workHours
+    ? `<div class="day-hours work">💼 ${esc(day.workHours)}</div>`
+    : `<div class="day-hours off">No Work ✓</div>`;
+
+  const dayProgressHtml = `
+    <div class="day-progress">
+      <div class="day-progress-meta">
+        <div>${t.completedCount} of ${t.totalCount} done · <span style="color:${t.dayPct >= 80 ? '#34d399' : '#fbbf24'}">${t.dayPct}%</span>${t.dayPct >= 80 ? ' <span style="margin-left:6px;color:#34d399">🎉</span>' : ''}</div>
+        ${t.completedCount > 0 ? `<button class="reset-day-btn" id="reset-day">↺ reset day</button>` : ""}
+      </div>
+      <div class="day-progress-bar"><div class="day-progress-fill" style="width:${t.dayPct}%;background:${t.dayPct >= 80 ? '#34d399' : '#fbbf24'}"></div></div>
+    </div>`;
+
+  const hasMakeups = activeDay === "Sun" && t.displayBlocks.some(b => b.isMakeup);
+  const makeupBannerHtml = hasMakeups
+    ? `<div class="makeup-banner"><strong>MAKE-UP TASKS</strong> — added to keep your weekly goals on track. Knock these out anywhere this week.</div>`
+    : "";
+
+  const timelineHtml = `
+    <div class="timeline">
+      ${t.displayBlocks.map((block, i) => {
+        const cat = categories[block.cat];
+        const isLast = i === t.displayBlocks.length - 1;
+        const isCheckable = block.duration > 0 && !block.noCheck;
+        const id = blockId(block, i);
+        const isChecked = !!t.dayChecks[id];
+        const isMakeup = !!block.isMakeup;
+
+        const timeColHtml = `
+          <div class="row-time-col">
+            <div class="row-time" style="margin-top:${isLast ? 4 : 10}px">${esc(block.time)}</div>
+            ${!isLast ? `<div class="row-line" style="background:linear-gradient(to bottom, ${cat.color}55, transparent)"></div>` : ""}
+          </div>`;
+
+        if (isLast) {
+          return `<div class="row">${timeColHtml}<div class="row-last">${esc(block.label)}</div></div>`;
+        }
+
+        const blockClasses = ["row-block"];
+        if (isCheckable) blockClasses.push("checkable");
+        if (isChecked) blockClasses.push("checked");
+        if (isMakeup) blockClasses.push("makeup-block");
+
+        const borderColor = isMakeup ? "#f97316" : (isChecked ? cat.color : cat.color + "2a");
+        const borderLeftColor = isMakeup ? "#f97316" : cat.color;
+        const bg = isChecked ? `${cat.color}22` : cat.bg;
+
+        const checkboxHtml = isCheckable
+          ? `<div class="checkbox" style="border-color:${isChecked ? cat.color : 'rgba(255,255,255,0.25)'};background:${isChecked ? cat.color : 'transparent'}">
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none" style="display:${isChecked ? 'block' : 'none'}">
+                <path d="M2.5 6L5 8.5L9.5 3.5" stroke="#0b0d13" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+              </svg>
+            </div>`
+          : "";
+
+        const makeupTag = (isMakeup && !isChecked) ? `<span class="makeup-tag">MAKE-UP</span>` : "";
+
+        return `<div class="row">
+          ${timeColHtml}
+          <div class="${blockClasses.join(' ')}" data-id="${esc(id)}" data-checkable="${isCheckable ? '1' : '0'}"
+               style="background:${bg};border-color:${borderColor};border-left-color:${borderLeftColor}">
+            ${checkboxHtml}
+            <div style="flex:1">
+              <div class="label-row">
+                <span class="icon">${cat.icon}</span>
+                <span class="label" style="${isChecked ? `text-decoration-color:${cat.color}aa` : ''}">${esc(block.label)}</span>
+                ${makeupTag}
+              </div>
+              ${block.duration > 0 ? `<div><span class="duration" style="color:${cat.color};background:${cat.color}18">${fmtDur(block.duration)}</span></div>` : ""}
+            </div>
+          </div>
+        </div>`;
+      }).join("")}
+    </div>`;
+
+  const legendHtml = `
+    <div class="legend">
+      <div class="legend-title">Categories</div>
+      <div class="legend-items">
+        ${Object.entries(categories).filter(([k]) => k !== "routine").map(([key, cat]) =>
+          `<div class="legend-item" style="background:${cat.bg};border-color:${cat.color}30;color:${cat.color}">
+            <span>${cat.icon}</span><span>${esc(cat.label)}</span>
+          </div>`).join("")}
+      </div>
+    </div>`;
+
+  const installHintHtml = !installHidden ? `
+    <div class="install-hint">
+      <div class="install-hint-inner">
+        <strong>TIP</strong> — On iPhone: tap the Share icon in Safari, then "Add to Home Screen" for a one-tap app icon. Your check-offs save automatically and stay on your device.
+        <div><button class="install-hint-dismiss" id="dismiss-hint">Got it, hide this</button></div>
+      </div>
+    </div>` : "";
+
+  document.getElementById("root").innerHTML = `
+    <div class="header">
+      <div class="eyebrow">Opportunistic Week</div>
+      <div class="title">Your <span class="accent">best</span> week,<br><span class="sub">structured but flexible</span></div>
+      ${ringsHtml}
+      ${chipsHtml}
+      <div class="btn-row">
+        <button class="btn btn-amber" id="toggle-stats">${showStats ? "▲ Hide" : "▼ Show"} Weekly Goals</button>
+        <button class="btn btn-red" id="reset-week">↺ Reset Week</button>
+      </div>
+      ${goalsHtml}
+    </div>
+    ${installHintHtml}
+    <div class="tabs">${tabsHtml}</div>
+    <div class="day-head">
+      <div>
+        <div class="day-name">${esc(day.label)}${activeDay === todayKey ? '<span class="today-pill">TODAY</span>' : ""}</div>
+        <div class="day-theme">${esc(day.theme)}</div>
+      </div>
+      ${dayHoursHtml}
+    </div>
+    ${dayProgressHtml}
+    ${makeupBannerHtml}
+    ${timelineHtml}
+    ${legendHtml}
+  `;
+
+  // Event wiring
+  document.getElementById("toggle-stats").addEventListener("click", () => { showStats = !showStats; render(); });
+  document.getElementById("reset-week").addEventListener("click", () => {
+    if (confirm("Reset all check-offs for this week?")) { checks = {}; saveChecks(); render(); }
+  });
+  const resetDayBtn = document.getElementById("reset-day");
+  if (resetDayBtn) resetDayBtn.addEventListener("click", () => {
+    checks[activeDay] = {}; saveChecks(); render();
+  });
+  const dismissBtn = document.getElementById("dismiss-hint");
+  if (dismissBtn) dismissBtn.addEventListener("click", () => {
+    localStorage.setItem("install-hint-dismissed", "1"); render();
+  });
+  document.querySelectorAll(".tab").forEach(btn => {
+    btn.addEventListener("click", () => { activeDay = btn.dataset.day; render(); });
+  });
+  document.querySelectorAll(".row-block").forEach(blk => {
+    if (blk.dataset.checkable !== "1") return;
+    blk.addEventListener("click", () => {
+      const id = blk.dataset.id;
+      if (!checks[activeDay]) checks[activeDay] = {};
+      if (checks[activeDay][id]) delete checks[activeDay][id];
+      else checks[activeDay][id] = true;
+      saveChecks();
+      render();
+    });
+  });
+}
+
+// ============================================================
+// INIT
+// ============================================================
+loadChecks();
+render();
+</script>
+</body>
+</html>
